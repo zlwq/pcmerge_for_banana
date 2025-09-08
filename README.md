@@ -12,7 +12,8 @@
 git clone https://github.com/zlwq/pcmerge_for_banana.git 
 ```
 你需要事先下载好gpd和pcl，pcl用ubuntu apt自带的即可，gpd需要mkdir build和cd build之后再cmake ..再make再sudo make install即可。
-如你所见，很多无关的文件我全部删除，至于本项目删除的头文件实际上会在你的/usr里面找到，包括但不限于franka_ros，这个在ubuntu20.04里面也有 
+如你所见，很多无关的文件我全部删除，至于本项目删除的头文件实际上会在你的/usr里面找到，包括但不限于franka_ros。
+franka_ros的apt版本在这个ubuntu20.04里面也有。放心，本项目除了gpd没有一个需要源码编译。
 ```bash
 sudo apt install ros-noetic-franka-ros
 ``` 
