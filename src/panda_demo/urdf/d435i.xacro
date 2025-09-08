@@ -1,0 +1,172 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="d435i">
+
+  <!-- constants -->
+  <xacro:property name="M_PI" value="3.141592654"/>
+  <xacro:property name="d435_zero_depth_to_glass" value="4.2e-3"/>
+  <xacro:property name="d435_glass_to_front" value="0.1e-3"/>
+  <xacro:property name="d435_cam_depth_py" value="0.0175"/>
+
+  <!-- RGB depth macro (parametric) -->
+  <xacro:macro name="cam_rgb" params="prefix:='' topic_ns:='camera' update_rate:='30' width:='1280' height:='720' hfov_deg:='57.0' pc_cutoff:='0.5'">
+    <gazebo reference="${prefix}cam_rgb_link">
+      <sensor type="depth" name="${prefix}cam_rgb_sensor">
+        <always_on>true</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <camera>
+          <horizontal_fov>${hfov_deg*M_PI/180.0}</horizontal_fov>
+          <image>
+            <format>B8G8R8</format>
+            <width>${width}</width>
+            <height>${height}</height>
+          </image>
+          <clip>
+            <near>0.01</near>
+            <far>5</far>
+          </clip>
+        </camera>
+        <plugin name="${prefix}cam_rgb_link_controller" filename="libgazebo_ros_openni_kinect.so">
+          <alwaysOn>true</alwaysOn>
+          <updateRate>${update_rate}</updateRate>
+          <cameraName>${topic_ns}/rgb</cameraName>
+          <imageTopicName>${topic_ns}/rgb/image_raw</imageTopicName>
+          <cameraInfoTopicName>${topic_ns}/rgb/camera_info</cameraInfoTopicName>
+          <frameName>${prefix}camera_rgb_optical_frame</frameName>
+          <pointCloudCutoff>${pc_cutoff}</pointCloudCutoff>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>640</Cx>
+          <Cy>360</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- IR/depth macro (parametric) -->
+  <xacro:macro name="camera_ir" params="prefix:='' topic_ns:='camera' update_rate:='30' width:='1280' height:='720' hfov_deg:='57.0' pc_cutoff:='0.1'">
+    <gazebo reference="${prefix}camera_ir_link">
+      <sensor type="depth" name="${prefix}cam_ir_sensor">
+        <always_on>true</always_on>
+        <update_rate>${update_rate}</update_rate>
+        <camera>
+          <horizontal_fov>${hfov_deg*M_PI/180.0}</horizontal_fov>
+          <image>
+            <format>L8</format>
+            <width>${width}</width>
+            <height>${height}</height>
+          </image>
+          <clip>
+            <near>0.01</near>
+            <far>5</far>
+          </clip>
+        </camera>
+        <plugin name="${prefix}camera_ir_link_controller" filename="libgazebo_ros_openni_kinect.so">
+          <!-- <baseline>0.2</baseline> -->
+          <alwaysOn>true</alwaysOn>
+          <updateRate>${update_rate}</updateRate>
+          <cameraName>${topic_ns}/ir</cameraName>
+          <imageTopicName>${topic_ns}/ir/image_raw</imageTopicName>
+          <cameraInfoTopicName>${topic_ns}/ir/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>${topic_ns}/depth/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>${topic_ns}/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>${topic_ns}/depth/points</pointCloudTopicName>
+          <frameName>${prefix}camera_ir_optical_frame</frameName>
+          <pointCloudCutoff>${pc_cutoff}</pointCloudCutoff>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>640</Cx>
+          <Cy>360</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
+        </plugin>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Main D435i macro (parametric) -->
+  <xacro:macro name="d435i" params="prefix:='' topic_ns:='camera' update_rate:='30' width:='1280' height:='720' hfov_deg:='57.0'">
+    <!-- base link / mesh -->
+    <link name="${prefix}camera_base_link">
+      <collision>
+        <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
+        <geometry>
+          <box size="0.05 0.05 0.05"/>
+        </geometry>
+      </collision>
+      <visual>
+        <origin xyz="0 0 0" rpy="${M_PI/2} 0 ${M_PI/2}"/>
+        <geometry>
+          <mesh filename="package://panda_demo/urdf/meshes/d435i.dae"/>
+        </geometry>
+        <material name="">
+          <color rgba="0.0 0.0 0.5 1"/>
+        </material>
+      </visual>
+      <inertial>
+        <mass value="1e-5"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+      </inertial>
+    </link>
+
+    <!-- links (prefixed) -->
+    <link name="${prefix}cam_rgb_link"/>
+    <link name="${prefix}camera_rgb_optical_frame"/>
+    <link name="${prefix}camera_ir_link"/>
+    <link name="${prefix}camera_ir_optical_frame"/>
+
+    <!-- joints (prefixed) -->
+    <joint name="${prefix}camera_rgb_joint" type="fixed">
+      <origin xyz="-0.01 ${d435_cam_depth_py} 0" rpy="0 0 0"/>
+      <parent link="${prefix}camera_base_link"/>
+      <child link="${prefix}cam_rgb_link"/>
+    </joint>
+
+    <joint name="${prefix}camera_rgb_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2.0} 0 ${-M_PI/2.0}"/>
+      <parent link="${prefix}cam_rgb_link"/>
+      <child link="${prefix}camera_rgb_optical_frame"/>
+    </joint>
+
+    <joint name="${prefix}camera_ir_joint" type="fixed">
+      <origin xyz="0.00 0.015 0.00" rpy="0 0 0"/>
+      <parent link="${prefix}cam_rgb_link"/>
+      <child link="${prefix}camera_ir_link"/>
+    </joint>
+
+    <joint name="${prefix}camera_ir_optical_frame_joint" type="fixed">
+      <origin xyz="0 0 0" rpy="${-M_PI/2.0} 0 ${-M_PI/2.0}"/>
+      <parent link="${prefix}camera_ir_link"/>
+      <child link="${prefix}camera_ir_optical_frame"/>
+    </joint>
+
+    <!-- gazebo flags -->
+    <gazebo reference="${prefix}camera_base_link">
+      <turnGravityOff>true</turnGravityOff>
+    </gazebo>
+    <gazebo reference="${prefix}cam_rgb_link">
+      <turnGravityOff>true</turnGravityOff>
+    </gazebo>
+    <gazebo reference="${prefix}camera_ir_link">
+      <turnGravityOff>true</turnGravityOff>
+    </gazebo>
+    <gazebo reference="${prefix}camera_ir_optical_frame">
+      <turnGravityOff>true</turnGravityOff>
+    </gazebo>
+
+    <!-- instantiate the two sensor blocks with shared params -->
+    <xacro:cam_rgb prefix="${prefix}" topic_ns="${topic_ns}" update_rate="${update_rate}" width="${width}" height="${height}" hfov_deg="${hfov_deg}"/>
+    <xacro:camera_ir prefix="${prefix}" topic_ns="${topic_ns}" update_rate="${update_rate}" width="${width}" height="${height}" hfov_deg="${hfov_deg}"/>
+  </xacro:macro>
+
+</robot>

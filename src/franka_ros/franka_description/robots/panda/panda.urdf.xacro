@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="panda">
+
+  <xacro:include filename="$(find franka_description)/robots/common/franka_robot.xacro"/>
+
+  <xacro:arg name="arm_id" default="panda" />
+
+  <xacro:franka_robot arm_id="$(arg arm_id)" joint_limits="${xacro.load_yaml('$(find franka_description)/robots/panda/joint_limits.yaml')}">
+
+  </xacro:franka_robot>
+
+  <xacro:include filename="$(find panda_demo)/urdf/d435i.xacro" />
+
+
+  <!-- cam1 -->
+  <xacro:d435i prefix="cam1_" topic_ns="/cam1"/>
+  <joint name="cam1_base_joint" type="fixed">
+    <parent link="panda_link0"/>
+    <child link="cam1_camera_base_link"/>
+    <origin xyz="0 0.61 1.00" rpy="0 1.57 1.57"/>
+  </joint>
+
+  <!-- cam2 -->
+  <xacro:d435i prefix="cam2_" topic_ns="/cam2"/>
+  <joint name="cam2_base_joint" type="fixed">
+    <parent link="panda_link0"/>
+    <child link="cam2_camera_base_link"/>
+    <origin xyz="1.40 0.40 0.05" rpy="0 3.14 0"/>
+  </joint>
+
+  <!-- cam3 -->
+  <xacro:d435i prefix="cam3_" topic_ns="/cam3"/>
+  <joint name="cam3_base_joint" type="fixed">
+    <parent link="panda_link0"/>
+    <child link="cam3_camera_base_link"/>
+    <origin xyz="-1.40 0.40 0.05" rpy="0 0 0"/>
+  </joint>
+
+
+
+
+</robot>
+
+
