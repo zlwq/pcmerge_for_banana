@@ -1,6 +1,3 @@
-// === gpd_method / panda_grasp_executor.cpp (修改版) ===
-// 以第一个文件为主，加入第二个文件的夹爪动作方式
-
 #include <ros/ros.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <gpd_ros/GraspConfigList.h>
@@ -9,8 +6,6 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <Eigen/Geometry>
 #include <iostream>
-
-// ★ 新增：夹爪动作客户端
 #include <actionlib/client/simple_action_client.h>
 #include <franka_gripper/MoveAction.h>
 #include <franka_gripper/GraspAction.h>
@@ -89,7 +84,7 @@ private:
     R.col(1) = y;
     R.col(2) = a;
 
-    // 在手系内补一个绕 Z_hand 的偏航（缺省 90°），保持你现网格的对齐方式
+    // 在手系内补一个绕 Z_hand 的偏航（缺省 90°）
     double yaw_fix_deg = 90.0;
     double yaw_fix = yaw_fix_deg * M_PI / 180.0;
     Eigen::Matrix3d Rz_hand = Eigen::AngleAxisd(yaw_fix, Eigen::Vector3d::UnitZ()).toRotationMatrix();
@@ -127,7 +122,7 @@ private:
     cout << "100" << endl;
     ROS_INFO("Selected grasp with score: %.2f", max_score);
 
-    // —— 按你原逻辑：抬到正上方 0.3m —— //
+    //抬到正上方 0.3m 
     grasp_in_base.pose.position.z += 0.3;
     best_grasp_pub.publish(grasp_in_base);
 
@@ -151,7 +146,7 @@ private:
     }
     cout << "115" << endl;
 
-    // ====== 从“正上方 0.4m”开始，执行你的抓-放序列 ======
+    // 从正上方 0.4m开始，执行抓-放序列
 
     // A) 夹爪动作客户端（来自第二个文件的方法）
     actionlib::SimpleActionClient<franka_gripper::MoveAction> move_client("/franka_gripper/move", true);
@@ -175,7 +170,7 @@ private:
 
     // C) 向下 0.3 m
     grasp_in_base.pose.position.z -= 0.42;
-    geometry_msgs::Pose down = grasp_in_base.pose; // 当前就是“上方 0.3m” 
+    geometry_msgs::Pose down = grasp_in_base.pose; // 当前就是上方 0.3m
     move_group.setPoseTarget(down);
     moveit::planning_interface::MoveGroupInterface::Plan plan_down;
     if (move_group.plan(plan_down) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
@@ -203,8 +198,6 @@ private:
     geometry_msgs::Pose up = down;
     up.position.z += 0.3;
     move_group.setPoseTarget(up);
-    // 修正：使用正确别名
-    // E) 向上 0.3 m（续）
     moveit::planning_interface::MoveGroupInterface::Plan plan_up;
     if (move_group.plan(plan_up) == moveit::planning_interface::MoveItErrorCode::SUCCESS)
     {
